@@ -1,0 +1,17 @@
+# Secrets
+.env
+service-account-key.json
+
+# Python
+__pycache__/
+*.pyc
+*.egg-info/
+.venv/
+dist/
+build/
+
+# OS
+.DS_Store
+
+# Generated report (source of truth is docs/index.html)
+report.html

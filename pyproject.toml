@@ -1,0 +1,25 @@
+[build-system]
+requires = ["setuptools>=68.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "pickem"
+version = "0.1.0"
+description = "NFL Pick'em pool grader — pulls Google Form responses and grades against actual scores"
+requires-python = ">=3.10"
+dependencies = [
+    "gspread>=6.0",
+    "google-auth>=2.0",
+    "google-api-python-client>=2.0",
+    "httpx>=0.27",
+    "click>=8.0",
+    "tabulate>=0.9",
+    "python-dotenv>=1.0",
+    "thefuzz>=0.22",
+]
+
+[project.scripts]
+pickem = "pickem.cli:cli"
+
+[tool.setuptools.packages.find]
+include = ["pickem*"]
