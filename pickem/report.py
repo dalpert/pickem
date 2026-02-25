@@ -210,23 +210,28 @@ tr:hover td { background: var(--surface); }
   white-space: nowrap;
 }
 .race-bar-name {
-  position: absolute; left: -1px; top: 50%; transform: translateY(-50%);
-  width: 70px; display: flex; align-items: center; justify-content: center;
+  position: absolute; left: 0; top: 50%; transform: translateY(-50%);
+  width: 100px; display: flex; align-items: center; gap: 6px;
+  padding-left: 4px;
 }
 .race-bar-avatar {
-  width: 26px; height: 26px; border-radius: 50%; object-fit: cover;
-  border: 2px solid var(--border);
+  width: 32px; height: 32px; border-radius: 50%; object-fit: cover;
+  border: 2px solid var(--border); flex-shrink: 0;
 }
 .race-bar-avatar-placeholder {
-  width: 26px; height: 26px; border-radius: 50%;
+  width: 32px; height: 32px; border-radius: 50%;
   display: flex; align-items: center; justify-content: center;
-  font-size: 0.65rem; font-weight: 700; color: #fff;
-  border: 2px solid var(--border);
+  font-size: 0.75rem; font-weight: 700; color: #fff;
+  border: 2px solid var(--border); flex-shrink: 0;
 }
-.race-bar-inner { margin-left: 75px; flex: 1; position: relative; }
+.race-bar-label {
+  font-weight: 700; font-size: 0.75rem; color: var(--text);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.race-bar-inner { margin-left: 108px; flex: 1; position: relative; }
 
 /* ATS chart - negative value support */
-.ats-bar-track { position: relative; height: 32px; margin-left: 75px; width: calc(100% - 75px); }
+.ats-bar-track { position: relative; height: 32px; margin-left: 108px; width: calc(100% - 108px); }
 .ats-bar-zero {
   position: absolute; top: -4px; bottom: -4px; width: 2px;
   background: var(--text); opacity: 0.3; z-index: 2;
@@ -611,13 +616,13 @@ const bars = allData.map((d, i) => {{
   const row = document.createElement('div');
   row.className = 'race-bar';
   row.style.top = (i * BAR_H) + 'px';
-  var avatarHtml;
+  var avatarTag;
   if (d.avatar) {{
-    avatarHtml = '<img class="race-bar-avatar" src="' + d.avatar + '" alt="' + d.name + '">';
+    avatarTag = '<img class="race-bar-avatar" src="' + d.avatar + '" alt="' + d.name + '">';
   }} else {{
-    avatarHtml = '<span class="race-bar-avatar-placeholder" style="background:' + d.color + '">' + d.name[0] + '</span>';
+    avatarTag = '<span class="race-bar-avatar-placeholder" style="background:' + d.color + '">' + d.name[0] + '</span>';
   }}
-  row.innerHTML = '<span class="race-bar-name">' + avatarHtml + '</span>' +
+  row.innerHTML = '<span class="race-bar-name">' + avatarTag + '<span class="race-bar-label">' + d.name + '</span></span>' +
     '<div class="race-bar-inner">' +
       '<div class="race-bar-fill" style="background:' + d.color + ';width:0%">' +
         '<span class="race-bar-value">0</span>' +
@@ -798,13 +803,13 @@ const atsBars = atsData.map((d, i) => {{
   const row = document.createElement('div');
   row.className = 'race-bar';
   row.style.top = (i * ATS_BAR_H) + 'px';
-  var avatarHtml;
+  var avatarTag;
   if (d.avatar) {{
-    avatarHtml = '<img class="race-bar-avatar" src="' + d.avatar + '" alt="' + d.name + '">';
+    avatarTag = '<img class="race-bar-avatar" src="' + d.avatar + '" alt="' + d.name + '">';
   }} else {{
-    avatarHtml = '<span class="race-bar-avatar-placeholder" style="background:' + d.color + '">' + d.name[0] + '</span>';
+    avatarTag = '<span class="race-bar-avatar-placeholder" style="background:' + d.color + '">' + d.name[0] + '</span>';
   }}
-  row.innerHTML = '<span class="race-bar-name">' + avatarHtml + '</span>' +
+  row.innerHTML = '<span class="race-bar-name">' + avatarTag + '<span class="race-bar-label">' + d.name + '</span></span>' +
     '<div class="ats-bar-track">' +
       '<div class="ats-bar-zero" style="left:' + zeroPct + '%"></div>' +
       '<div class="ats-bar-fill" style="background:' + d.color + ';left:' + zeroPct + '%;width:0%"></div>' +
