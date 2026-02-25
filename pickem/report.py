@@ -58,7 +58,7 @@ def generate_report(
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Boyz & Jordan Pick'em {season}-{season + 1 - 2000}</title>
+<title>Pick'em Results</title>
 <style>
 {_css()}
 </style>
@@ -66,7 +66,7 @@ def generate_report(
 <body>
 <div class="container">
   <header>
-    <h1>Boyz & Jordan Pick'em</h1>
+    <h1>Pick'em Results</h1>
     <p class="subtitle">{season}-{str(season+1)[-2:]} NFL Season &middot; Weeks {weeks[0]}-{weeks[-1]}</p>
     <p class="updated">Updated {datetime.now().strftime("%b %d, %Y")}</p>
   </header>
@@ -119,7 +119,7 @@ def generate_report(
 
 <script>
 {_chart_js(season_data, colors, avatars)}
-{_ats_chart_js(season_data, colors)}
+{_ats_chart_js(season_data, colors, avatars)}
 {_sort_js()}
 {_expand_js()}
 </script>
@@ -211,8 +211,17 @@ tr:hover td { background: var(--surface); }
 }
 .race-bar-name {
   position: absolute; left: -1px; top: 50%; transform: translateY(-50%);
-  font-weight: 700; font-size: 0.9rem; color: var(--text);
-  width: 70px; text-align: right; padding-right: 8px;
+  width: 70px; display: flex; align-items: center; justify-content: center;
+}
+.race-bar-avatar {
+  width: 26px; height: 26px; border-radius: 50%; object-fit: cover;
+  border: 2px solid var(--border);
+}
+.race-bar-avatar-placeholder {
+  width: 26px; height: 26px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 0.65rem; font-weight: 700; color: #fff;
+  border: 2px solid var(--border);
 }
 .race-bar-inner { margin-left: 75px; flex: 1; position: relative; }
 
@@ -602,7 +611,13 @@ const bars = allData.map((d, i) => {{
   const row = document.createElement('div');
   row.className = 'race-bar';
   row.style.top = (i * BAR_H) + 'px';
-  row.innerHTML = '<span class="race-bar-name">' + d.name + '</span>' +
+  var avatarHtml;
+  if (d.avatar) {{
+    avatarHtml = '<img class="race-bar-avatar" src="' + d.avatar + '" alt="' + d.name + '">';
+  }} else {{
+    avatarHtml = '<span class="race-bar-avatar-placeholder" style="background:' + d.color + '">' + d.name[0] + '</span>';
+  }}
+  row.innerHTML = '<span class="race-bar-name">' + avatarHtml + '</span>' +
     '<div class="race-bar-inner">' +
       '<div class="race-bar-fill" style="background:' + d.color + ';width:0%">' +
         '<span class="race-bar-value">0</span>' +
@@ -729,8 +744,8 @@ renderWeek(0);"""
 # JavaScript — ATS Bonus Race bar chart
 # ---------------------------------------------------------------------------
 
-def _ats_chart_js(season_data: SeasonData, colors: list[str]) -> str:
-    """Generate JS for animated ATS bar chart race (supports negatives)."""
+def _ats_chart_js(season_data: SeasonData, colors: list[str], avatars: dict[str, str]) -> str:
+    """Generate JS for animated ATS bar chart race (supports negatives) with winner celebration."""
     standings = season_data.standings
     weeks = season_data.weeks_graded
 
@@ -745,8 +760,9 @@ def _ats_chart_js(season_data: SeasonData, colors: list[str]) -> str:
                 total += ats
             cumulative.append(round(total, 1))
         values_str = ", ".join(str(v) for v in cumulative)
+        avatar_uri = avatars.get(ps.name, "")
         player_entries.append(
-            f"{{ name: '{_esc_js(ps.name)}', color: '{color}', values: [{values_str}] }}"
+            f"{{ name: '{_esc_js(ps.name)}', color: '{color}', values: [{values_str}], avatar: '{avatar_uri}' }}"
         )
 
     all_data_str = ",\n  ".join(player_entries)
@@ -760,6 +776,13 @@ const atsData = [
 const atsTotalWeeks = atsLabels.length;
 const ATS_BAR_H = 48;
 const atsTrack = document.getElementById('atsRaceTrack');
+const atsChartContainer = atsTrack.parentElement;
+atsChartContainer.style.position = 'relative';
+
+// Create celebration overlay for ATS chart
+const atsCelebOverlay = document.createElement('div');
+atsCelebOverlay.className = 'celebrate-overlay';
+atsChartContainer.appendChild(atsCelebOverlay);
 
 // Compute symmetric scale so zero is centered
 let atsAbsMax = 0;
@@ -775,7 +798,13 @@ const atsBars = atsData.map((d, i) => {{
   const row = document.createElement('div');
   row.className = 'race-bar';
   row.style.top = (i * ATS_BAR_H) + 'px';
-  row.innerHTML = '<span class="race-bar-name">' + d.name + '</span>' +
+  var avatarHtml;
+  if (d.avatar) {{
+    avatarHtml = '<img class="race-bar-avatar" src="' + d.avatar + '" alt="' + d.name + '">';
+  }} else {{
+    avatarHtml = '<span class="race-bar-avatar-placeholder" style="background:' + d.color + '">' + d.name[0] + '</span>';
+  }}
+  row.innerHTML = '<span class="race-bar-name">' + avatarHtml + '</span>' +
     '<div class="ats-bar-track">' +
       '<div class="ats-bar-zero" style="left:' + zeroPct + '%"></div>' +
       '<div class="ats-bar-fill" style="background:' + d.color + ';left:' + zeroPct + '%;width:0%"></div>' +
@@ -837,18 +866,68 @@ function renderAtsWeek(wi) {{
   atsWeekLabel.textContent = 'Week ' + atsLabels[wi].replace('W','') + ' of ' + atsTotalWeeks;
 }}
 
+function celebrateAts() {{
+  // Find the winner (highest final ATS value)
+  let winnerIdx = 0, winnerVal = -999999;
+  atsData.forEach((d, i) => {{
+    const v = d.values[atsTotalWeeks - 1];
+    if (v > winnerVal) {{ winnerVal = v; winnerIdx = i; }}
+  }});
+  const winner = atsData[winnerIdx];
+
+  // Build banner
+  var avatarHtml;
+  if (winner.avatar) {{
+    avatarHtml = '<img class="celebrate-avatar" src="' + winner.avatar + '" alt="' + winner.name + '">';
+  }} else {{
+    avatarHtml = '<span class="celebrate-avatar-placeholder" style="background:' + winner.color + '">' + winner.name[0] + '</span>';
+  }}
+  atsCelebOverlay.innerHTML =
+    '<div class="celebrate-banner">' +
+      avatarHtml +
+      '<div class="celebrate-text">' +
+        '<div class="celebrate-name">' + winner.name + ' wins!</div>' +
+        '<div class="celebrate-record">ATS: ' + (winnerVal >= 0 ? '+' : '') + winnerVal.toFixed(1) + '</div>' +
+      '</div>' +
+    '</div>';
+
+  // Confetti burst
+  const confettiColors = ['#4a7c96', '#c0504d', '#3d8b5e', '#7b6b9e', '#c98442', '#5a9e9e', '#d4af37', '#96506e'];
+  for (var i = 0; i < 60; i++) {{
+    var piece = document.createElement('div');
+    piece.className = 'confetti-piece';
+    piece.style.background = confettiColors[Math.floor(Math.random() * confettiColors.length)];
+    piece.style.left = (10 + Math.random() * 80) + '%';
+    piece.style.top = (Math.random() * 30) + '%';
+    piece.style.width = (6 + Math.random() * 6) + 'px';
+    piece.style.height = (6 + Math.random() * 6) + 'px';
+    piece.style.borderRadius = Math.random() > 0.5 ? '50%' : '2px';
+    piece.style.animation = 'confetti-fall ' + (1.2 + Math.random() * 1.5) + 's ease-out ' + (Math.random() * 0.5) + 's forwards';
+    atsChartContainer.appendChild(piece);
+  }}
+
+  setTimeout(() => {{ atsCelebOverlay.classList.add('show'); }}, 200);
+}}
+
+function clearAtsCelebration() {{
+  atsCelebOverlay.classList.remove('show');
+  atsCelebOverlay.innerHTML = '';
+  atsChartContainer.querySelectorAll('.confetti-piece').forEach(p => p.remove());
+}}
+
 function atsAdvance() {{
-  if (atsCurWeek >= atsTotalWeeks - 1) {{ atsStop(); atsBtnPlay.innerHTML = '&#9654; Replay'; return; }}
+  if (atsCurWeek >= atsTotalWeeks - 1) {{ atsStop(); atsBtnPlay.innerHTML = '&#9654; Replay'; celebrateAts(); return; }}
   atsCurWeek++; renderAtsWeek(atsCurWeek);
 }}
 function atsPlay() {{
   if (atsCurWeek >= atsTotalWeeks - 1) {{ atsReset(); }}
+  clearAtsCelebration();
   atsIntId = setInterval(atsAdvance, atsSpeed);
   atsBtnPlay.innerHTML = '&#9646;&#9646; Pause';
 }}
 function atsStop() {{ clearInterval(atsIntId); atsIntId = null; if (atsCurWeek < atsTotalWeeks - 1) atsBtnPlay.innerHTML = '&#9654; Play'; }}
 function atsReset() {{
-  atsStop(); atsCurWeek = 0;
+  atsStop(); atsCurWeek = 0; clearAtsCelebration();
   atsBars.forEach(b => {{ b.el.style.transition = 'none'; b.fill.style.transition = 'none'; }});
   renderAtsWeek(0); atsTrack.offsetHeight;
   atsBars.forEach(b => {{ b.el.style.transition = ''; b.fill.style.transition = ''; }});
