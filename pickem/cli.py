@@ -204,6 +204,76 @@ def report(
         click.echo(f"\nHTML report written to {output}")
 
 
+@cli.command()
+@click.option("--sheet-id", default=None)
+@click.option("--sheet-url", default=None)
+@click.option("--season", required=True, type=int, help="NFL season year (e.g. 2024).")
+@click.option("--weeks", default="1-18", help="Week range, e.g. '1-18' or '11-14'.")
+@click.option("--no-cache", is_flag=True, default=False)
+@click.option(
+    "--db",
+    default="pickem.db",
+    type=click.Path(),
+    help="Path to SQLite database file.",
+)
+@click.option("--label", default=None, help="Season label, e.g. '2024-25'. Auto-generated if omitted.")
+def ingest(
+    sheet_id: str | None,
+    sheet_url: str | None,
+    season: int,
+    weeks: str,
+    no_cache: bool,
+    db: str,
+    label: str | None,
+) -> None:
+    """Grade all weeks for a season and write results to SQLite."""
+    from pickem.db import init_db, upsert_season, recompute_season_standings, upsert_week_data
+
+    sid = _resolve_sheet(sheet_url, sheet_id)
+    if label is None:
+        label = f"{season}-{str(season + 1)[-2:]}"
+
+    conn = init_db(db)
+    upsert_season(conn, season, label, sid)
+
+    start, end = [int(x) for x in weeks.split("-")]
+    existing = set(list_tabs(sid))
+
+    import time
+
+    graded_weeks = 0
+    for week in range(start, end + 1):
+        tab_name = f"week{week}"
+        if tab_name not in existing:
+            continue
+
+        for attempt in range(3):
+            try:
+                headers, rows = fetch_responses(sid, tab_name)
+                games, players = parse_responses(headers, rows)
+                results = fetch_scores(season, week, use_cache=not no_cache)
+                player_results = grade_picks(games, players, results)
+                upsert_week_data(conn, season, week, games, player_results)
+                click.echo(f"Week {week}: ingested {len(player_results)} players, {len(games)} games")
+                graded_weeks += 1
+                break
+            except Exception as e:
+                if "429" in str(e) and attempt < 2:
+                    click.echo(f"Week {week}: rate limited, retrying in {10 * (attempt + 1)}s...")
+                    time.sleep(10 * (attempt + 1))
+                else:
+                    click.echo(f"Week {week}: ERROR - {e}")
+                    break
+
+    if graded_weeks == 0:
+        conn.close()
+        raise click.ClickException("No weeks could be graded.")
+
+    recompute_season_standings(conn, season)
+    conn.close()
+    click.echo(f"\nDone! {graded_weeks} weeks ingested into {db}")
+
+
 def _print_leaderboard(week: int, player_results, leaderboard_only: bool) -> None:
     click.echo("=" * 60)
     click.echo(f"  WEEK {week} LEADERBOARD")

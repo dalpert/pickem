@@ -1,0 +1,385 @@
+@import "tailwindcss";
+
+@theme inline {
+  --color-bg: #f5f6f8;
+  --color-surface: #ffffff;
+  --color-surface2: #eef0f4;
+  --color-text: #2d3748;
+  --color-text-muted: #8892a4;
+  --color-accent: #4a7c96;
+  --color-green: #3d8b5e;
+  --color-red: #c0504d;
+  --color-border: #d8dce4;
+  --font-sans: var(--font-geist-sans);
+}
+
+body {
+  background: var(--color-bg);
+  color: var(--color-text);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+}
+
+/* ─── Card ─────────────────────────────────────────────────────── */
+.card {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: 12px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+  padding: 1.5rem;
+}
+
+/* ─── Tables ───────────────────────────────────────────────────── */
+.data-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.875rem;
+}
+.data-table th {
+  text-align: left;
+  padding: 0.75rem 0.5rem;
+  border-bottom: 2px solid var(--color-border);
+  color: var(--color-text-muted);
+  font-weight: 600;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  cursor: pointer;
+  user-select: none;
+}
+.data-table th:hover {
+  color: var(--color-accent);
+}
+.data-table td {
+  padding: 0.6rem 0.5rem;
+  border-bottom: 1px solid var(--color-border);
+}
+.data-table tr:last-child td {
+  border-bottom: none;
+}
+.data-table tr.expandable-row {
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.data-table tr.expandable-row:hover {
+  background: var(--color-surface2);
+}
+.data-table tr.detail-row {
+  background: var(--color-surface2);
+}
+
+/* ─── Avatar ───────────────────────────────────────────────────── */
+.avatar {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid var(--color-border);
+  flex-shrink: 0;
+}
+.avatar-sm {
+  width: 24px;
+  height: 24px;
+}
+.avatar-lg {
+  width: 64px;
+  height: 64px;
+}
+.avatar-placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  font-weight: 700;
+  color: #fff;
+  font-size: 0.7rem;
+  border: 2px solid var(--color-border);
+  flex-shrink: 0;
+}
+
+/* ─── Race Chart ───────────────────────────────────────────────── */
+.race-track {
+  position: relative;
+  width: 100%;
+  overflow: hidden;
+}
+.race-bar {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  transition: top 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.race-bar-name {
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 100px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding-left: 4px;
+}
+.race-bar-avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid var(--color-border);
+  flex-shrink: 0;
+}
+.race-bar-avatar-placeholder {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #fff;
+  border: 2px solid var(--color-border);
+  flex-shrink: 0;
+}
+.race-bar-label {
+  font-weight: 700;
+  font-size: 0.75rem;
+  color: var(--color-text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.race-bar-inner {
+  margin-left: 108px;
+  flex: 1;
+  position: relative;
+}
+.race-bar-fill {
+  height: 28px;
+  border-radius: 4px;
+  transition: width 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+  min-width: 2px;
+}
+.race-bar-value {
+  position: absolute;
+  right: -2rem;
+  top: 50%;
+  transform: translateY(-50%);
+  font-weight: 700;
+  font-size: 0.8rem;
+}
+
+/* ATS bar track (negative value support) */
+.ats-bar-track {
+  position: relative;
+  height: 32px;
+  margin-left: 108px;
+  width: calc(100% - 108px);
+}
+.ats-zero-line {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 1px;
+  background: var(--color-text-muted);
+  opacity: 0.4;
+}
+.ats-bar-fill {
+  position: absolute;
+  top: 2px;
+  height: 28px;
+  border-radius: 4px;
+  transition: left 0.8s cubic-bezier(0.4, 0, 0.2, 1),
+    width 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+  min-width: 2px;
+}
+.ats-bar-value {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  font-weight: 700;
+  font-size: 0.8rem;
+  white-space: nowrap;
+}
+
+/* ─── Chart Controls ───────────────────────────────────────────── */
+.chart-controls {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1rem;
+  gap: 0.75rem;
+}
+.week-label {
+  font-weight: 600;
+  font-size: 0.9rem;
+  color: var(--color-text-muted);
+}
+.ctrl-btn {
+  padding: 0.35rem 0.75rem;
+  border: 1px solid var(--color-border);
+  border-radius: 6px;
+  background: var(--color-surface);
+  color: var(--color-text);
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.ctrl-btn:hover {
+  background: var(--color-surface2);
+  border-color: var(--color-accent);
+  color: var(--color-accent);
+}
+
+/* ─── Celebration ──────────────────────────────────────────────── */
+.celebration-overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.92);
+  border-radius: 12px;
+  z-index: 10;
+  animation: fadeIn 0.5s;
+}
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+.winner-banner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+}
+.winner-avatar {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 3px solid #f0c040;
+  box-shadow: 0 0 16px rgba(240, 192, 64, 0.5);
+}
+.winner-name {
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: var(--color-text);
+}
+.winner-label {
+  font-size: 0.85rem;
+  color: var(--color-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+}
+.winner-value {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--color-accent);
+}
+
+/* Confetti */
+.confetti-piece {
+  position: absolute;
+  width: 8px;
+  height: 8px;
+  border-radius: 2px;
+  opacity: 0;
+  animation: confettiFall 2s ease-out forwards;
+}
+@keyframes confettiFall {
+  0% {
+    opacity: 1;
+    transform: translateY(0) rotate(0deg);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(200px) rotate(720deg);
+  }
+}
+
+/* ─── Week Card ────────────────────────────────────────────────── */
+.week-card summary {
+  cursor: pointer;
+  padding: 0.75rem 1rem;
+  font-weight: 600;
+  list-style: none;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  border-radius: 8px;
+  transition: background 0.15s;
+}
+.week-card summary:hover {
+  background: var(--color-surface2);
+}
+.week-card summary::before {
+  content: "▸";
+  font-size: 0.8rem;
+  color: var(--color-text-muted);
+  transition: transform 0.2s;
+}
+.week-card[open] summary::before {
+  transform: rotate(90deg);
+}
+.week-card .week-content {
+  padding: 1rem;
+  border-top: 1px solid var(--color-border);
+}
+
+/* ─── Pick Grid ────────────────────────────────────────────────── */
+.pick-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 0.75rem;
+}
+.pick-card {
+  background: var(--color-surface2);
+  border-radius: 8px;
+  padding: 0.75rem;
+}
+.pick-card-header {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+  font-weight: 700;
+  font-size: 0.85rem;
+}
+.pick-item {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.8rem;
+  padding: 0.2rem 0;
+}
+.pick-correct {
+  color: var(--color-green);
+}
+.pick-wrong {
+  color: var(--color-red);
+}
+.pick-push {
+  color: var(--color-text-muted);
+}
+
+/* ─── Weekly Record Grid ───────────────────────────────────────── */
+.wr-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  padding: 0.5rem 0;
+}
+.wr-badge {
+  font-size: 0.72rem;
+  font-weight: 600;
+  padding: 0.15rem 0.4rem;
+  border-radius: 4px;
+  background: var(--color-surface2);
+  color: var(--color-text-muted);
+  white-space: nowrap;
+}
